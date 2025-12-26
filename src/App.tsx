@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useCalculadoraIR } from './hooks/useCalculadoraIR';
 import { type TipoOperacao, type CategoriaAtivo } from './core/types';
 import { PlusCircle, Calculator, History, TrendingUp, AlertCircle, Trash2 } from 'lucide-react';
-
+import { TICKERS_B3 } from './utils/tickers';
+  
 export default function App() {
   const { operacoes, resultados, custodia, adicionarOperacao } = useCalculadoraIR();
   
@@ -59,8 +60,20 @@ export default function App() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-500 uppercase">Ticker</label>
-                  <input type="text" placeholder="PETR4" required className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    onChange={e => setFormData({...formData, ticker: e.target.value.toUpperCase()})} value={formData.ticker} />
+                  <input 
+                    type="text" 
+                    list="tickers-list" // Conecta com o id do datalist
+                    placeholder="PETR4" 
+                    required 
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    onChange={e => setFormData({...formData, ticker: e.target.value.toUpperCase()})} 
+                    value={formData.ticker} 
+                  />
+                  <datalist id="tickers-list">
+                    {TICKERS_B3.map(ticker => (
+                      <option key={ticker} value={ticker} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-500 uppercase">Categoria</label>
