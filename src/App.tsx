@@ -4,6 +4,7 @@ import { type TipoOperacao, type CategoriaAtivo } from './core/types';
 import { PlusCircle, Calculator, History, TrendingUp, AlertCircle, Trash2 } from 'lucide-react';
 import { TICKERS_DATA } from './utils/tickers';
 import { calcularVencimentoDARF } from './utils/dateUtils';
+import { Github, ExternalLink } from 'lucide-react'; // Certifique-se de importar Github
   
 export default function App() {
   const [activeTab, setActiveTab] = useState<'calc' | 'regras' | 'sobre'>('calc');
@@ -54,6 +55,16 @@ export default function App() {
             <Calculator size={28} />
             <span>TaxCalc <span className="text-slate-400 font-light">Brasil</span></span>
           </div>
+          
+          <a 
+            href="https://github.com/Gustyper/Calculadora_IR_Acoes" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-medium text-sm"
+          >
+            <Github size={20} />
+            <span className="hidden sm:inline">Ver Código Fonte</span>
+          </a>
         </div>
       </nav>
 
@@ -346,8 +357,37 @@ export default function App() {
               </div>
             </section>
           </div>
-        </main>
-      )}
+          </main>
+        )}
+
+        <footer className="bg-white border-t border-slate-200 mt-auto py-12 px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-slate-400 font-bold">
+                  <Calculator size={20} />
+                  <span>TaxCalc Brasil</span>
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed max-w-md">
+                  Ferramenta Open Source para auxílio no cálculo de preço médio e estimativa de imposto de renda sobre ativos de renda variável.
+                </p>
+              </div>
+              
+              <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
+                <h4 className="text-xs font-bold text-amber-800 uppercase mb-2 flex items-center gap-2">
+                  <AlertCircle size={14} /> Aviso de Isenção de Responsabilidade
+                </h4>
+                <p className="text-[11px] text-amber-700 leading-relaxed italic">
+                  Este é um <b>projeto estritamente educacional e de aprendizagem</b>. Os cálculos apresentados são simplificados e não substituem a consultoria de um contador profissional ou o uso de sistemas oficiais da Receita Federal. O desenvolvedor não se responsabiliza por erros de cálculo, emissões incorretas de DARF ou quaisquer prejuízos financeiros e fiscais decorrentes do uso desta ferramenta. <b>Confira sempre os dados antes de realizar qualquer pagamento.</b>
+                </p>
+              </div>
+            </div>
+            
+            <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+              <p>© 2025 TaxCalc Brasil - Desenvolvido para fins de estudo.</p>
+            </div>
+          </div>
+        </footer>
     </div>
   );
 }
