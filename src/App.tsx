@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useCalculadoraIR } from './hooks/useCalculadoraIR';
 import { type TipoOperacao, type CategoriaAtivo } from './core/types';
-import { PlusCircle, Calculator, History, TrendingUp, AlertCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Calculator, History, TrendingUp, AlertCircle, Trash2, RotateCcw } from 'lucide-react';
 import { TICKERS_DATA } from './utils/tickers';
 import { calcularVencimentoDARF } from './utils/dateUtils';
-import { Github, ExternalLink } from 'lucide-react'; // Certifique-se de importar Github
+import { Github } from 'lucide-react';
   
 export default function App() {
   const [activeTab, setActiveTab] = useState<'calc' | 'regras' | 'sobre'>('calc');
 
-  const { operacoes, resultados, custodia, prejuizos, adicionarOperacao, limparDados } = useCalculadoraIR();
+  const { operacoes, resultados, custodia, prejuizos, adicionarOperacao, limparDados, removerUltimaOperacao } = useCalculadoraIR();
   
   const [formData, setFormData] = useState({
     data: '', ticker: '', tipo: 'COMPRA' as TipoOperacao,
@@ -317,13 +317,27 @@ export default function App() {
             <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <h2 className="font-bold flex items-center gap-2"><History size={18} /> Histórico</h2>
-                <span className="text-xs font-medium px-2 py-1 bg-slate-200 rounded-full">{operacoes.length} itens</span>
-                <button 
-                  onClick={limparDados}
-                  className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-colors"
-                >
-                  <Trash2 size={14} /> Limpar Tudo
-                </button>
+                
+                <div className="flex items-center gap-4">
+                  <span className="text-xs font-medium px-2 py-1 bg-slate-200 rounded-full">{operacoes.length} itens</span>
+                  
+                  {/* Botão Desfazer */}
+                  <button 
+                    onClick={removerUltimaOperacao}
+                    disabled={operacoes.length === 0}
+                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Remover última operação"
+                  >
+                    <RotateCcw size={14} /> Desfazer
+                  </button>
+
+                  <button 
+                    onClick={limparDados}
+                    className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-colors"
+                  >
+                    <Trash2 size={14} /> Limpar Tudo
+                  </button>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">

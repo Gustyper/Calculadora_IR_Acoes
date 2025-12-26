@@ -40,5 +40,12 @@ export function useCalculadoraIR() {
     }
   };
 
-  return { operacoes, resultados, custodia, prejuizos, adicionarOperacao, limparDados };
+  const removerUltimaOperacao = () => {
+    setOperacoes((prev) => {
+      if (prev.length === 0) return prev;
+      return prev.slice(0, -1);
+    });
+  };
+
+  return { operacoes, resultados, custodia, prejuizos, adicionarOperacao, limparDados, removerUltimaOperacao };
 }
