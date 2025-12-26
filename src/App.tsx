@@ -4,7 +4,7 @@ import { type TipoOperacao, type CategoriaAtivo } from './core/types';
 import { PlusCircle, Calculator, History, TrendingUp, AlertCircle, Trash2 } from 'lucide-react';
 
 export default function App() {
-  const { operacoes, resultados, adicionarOperacao } = useCalculadoraIR();
+  const { operacoes, resultados, custodia, adicionarOperacao } = useCalculadoraIR();
   
   const [formData, setFormData] = useState({
     data: '', ticker: '', tipo: 'COMPRA' as TipoOperacao,
@@ -121,6 +121,29 @@ export default function App() {
                 </div>
               ))}
               {resultados.length === 0 && <div className="col-span-full p-8 text-center bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500">Aguardando operações para calcular...</div>}
+            </div>
+          </section>
+
+          {/* Dashboard de Custódia Atual */}
+          <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-4 border-b border-slate-100 bg-blue-50/50">
+              <h2 className="font-bold flex items-center gap-2 text-blue-700">
+                <TrendingUp size={18} /> Sua Custódia Atual
+              </h2>
+            </div>
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {custodia.map(([ticker, info]) => (
+                info.quantidade > 0 && (
+                  <div key={ticker} className="p-3 border border-slate-100 rounded-xl bg-slate-50">
+                    <p className="text-xs font-bold text-slate-400">{ticker}</p>
+                    <p className="text-lg font-black text-slate-800">{info.quantidade} un.</p>
+                    <p className="text-xs text-slate-500">PM: R$ {info.precoMedio.toFixed(2)}</p>
+                  </div>
+                )
+              ))}
+              {custodia.filter(c => c[1].quantidade > 0).length === 0 && (
+                <p className="text-sm text-slate-400 col-span-full italic">Nenhum ativo em carteira no momento.</p>
+              )}
             </div>
           </section>
 

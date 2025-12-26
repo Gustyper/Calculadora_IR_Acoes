@@ -5,14 +5,16 @@ import { TaxEngine } from '../core/calculators/TaxEngine';
 export function useCalculadoraIR() {
   const [operacoes, setOperacoes] = useState<Operacao[]>([]);
 
-  const resultados = useMemo(() => {
+  const { resultados, custodia } = useMemo(() => {
     const engine = new TaxEngine();
-    return engine.calcular(operacoes);
+    const res = engine.calcular(operacoes);
+    const cust = Array.from(engine['estoque'].entries()); 
+    return { resultados: res, custodia: cust };
   }, [operacoes]);
 
   const adicionarOperacao = (op: Operacao) => {
     setOperacoes((prev) => [...prev, op]);
   };
 
-  return { operacoes, resultados, adicionarOperacao };
+  return { operacoes, resultados, custodia, adicionarOperacao };
 }
