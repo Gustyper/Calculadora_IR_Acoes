@@ -5,6 +5,8 @@ import { PlusCircle, Calculator, History, TrendingUp, AlertCircle } from 'lucide
 import { TICKERS_DATA } from './utils/tickers';
   
 export default function App() {
+  const [activeTab, setActiveTab] = useState<'calc' | 'regras'>('calc');
+
   const { operacoes, resultados, custodia, prejuizos, adicionarOperacao } = useCalculadoraIR();
   
   const [formData, setFormData] = useState({
@@ -53,6 +55,42 @@ export default function App() {
           </div>
         </div>
       </nav>
+
+      <div className="max-w-6xl mx-auto px-4 mb-6 flex gap-4">
+        <button onClick={() => setActiveTab('calc')} className={`px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'calc' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 hover:bg-slate-100'}`}>Calculadora</button>
+        <button onClick={() => setActiveTab('regras')} className={`px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'regras' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 hover:bg-slate-100'}`}>Entenda as Regras</button>
+      </div>
+
+      {activeTab === 'regras' && (
+        <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-8">
+          <h2 className="text-2xl font-black text-slate-800">Guia Rápido de Tributação (B3)</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <h3 className="font-bold text-blue-600 uppercase text-sm">Ações (Swing)</h3>
+              <p className="text-sm text-slate-600"><b>Imposto:</b> 15% sobre o lucro.</p>
+              <p className="text-sm text-slate-600"><b>Isenção:</b> Vendas totais de ações no mês abaixo de R$ 20.000.</p>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-bold text-orange-600 uppercase text-sm">BDRs & ETFs</h3>
+              <p className="text-sm text-slate-600"><b>Imposto:</b> 15% sobre o lucro.</p>
+              <p className="text-sm text-slate-600"><b>Isenção:</b> Não existe. Qualquer lucro é tributado.</p>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-bold text-emerald-600 uppercase text-sm">FIIs & FIAGROs</h3>
+              <p className="text-sm text-slate-600"><b>Imposto:</b> 20% sobre o lucro.</p>
+              <p className="text-sm text-slate-600"><b>Isenção:</b> Não existe para vendas. (Rendimentos mensais são isentos).</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl border-l-4 border-blue-500">
+            <h4 className="font-bold text-slate-800 mb-1">Compensação de Prejuízos</h4>
+            <p className="text-sm text-slate-600">Prejuízos de meses anteriores podem ser usados para abater lucros futuros. <b>Atenção:</b> Prejuízo de FII só abate lucro de FII. Ações, BDRs e ETFs podem se compensar entre si.</p>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
         
@@ -148,20 +186,30 @@ export default function App() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {resultados.map(res => (
-                <div key={res.mes} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
-                  <div className={`absolute top-0 right-0 w-2 h-full ${res.darfEmitir ? 'bg-red-500' : 'bg-green-500'}`} />
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{res.mes}</p>
-                      <h3 className="text-2xl font-black text-slate-800">R$ {res.impostoDevido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</h3>
-                    </div>
-                    {res.darfEmitir ? <AlertCircle className="text-red-500" /> : <TrendingUp className="text-green-500" />}
-                  </div>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between text-slate-600"><span>Vendas (Ações):</span> <b>R$ {res.vendasTotais.toLocaleString('pt-BR')}</b></div>
-                    <div className="flex justify-between text-slate-600"><span>Lucro Líquido:</span> <b className={res.lucroTotal >= 0 ? 'text-green-600' : 'text-red-600'}>R$ {res.lucroTotal.toLocaleString('pt-BR')}</b></div>
-                  </div>
+                <div key={res.mes} className={`p-5 rounded-2xl border ${res.darfEmitir ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-bold text-lg text-slate-700">{res.mes}</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${res.darfEmitir ? 'bg-amber-200 text-amber-900' : 'bg-green-200 text-green-900'}`}>
+                    {res.darfEmitir ? 'AÇÃO NECESSÁRIA' : 'SEM PENDÊNCIAS'}
+                  </span>
                 </div>
+
+                {res.darfEmitir ? (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 text-amber-800">
+                      <AlertCircle size={18} className="mt-0.5 flex-shrink-0" />
+                      <p className="text-sm">Você deve emitir um <b>DARF</b> no valor de <b>R$ {res.impostoDevido.toFixed(2)}</b>.</p>
+                    </div>
+                    <ul className="text-xs text-amber-700 space-y-1 ml-6 list-disc">
+                      <li>Código da Receita: <b>6015</b></li>
+                      <li>Vencimento: Último dia útil de <b>{/* Lógica para o mês seguinte */}</b></li>
+                      <li>Emitir via: <b>Sicalc Web</b></li>
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-sm text-green-700 font-medium italic">Parabéns! Não há imposto devido para este período (isenção ou falta de lucro).</p>
+                )}
+              </div>
               ))}
               {resultados.length === 0 && <div className="col-span-full p-8 text-center bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500">Aguardando operações para calcular...</div>}
             </div>
