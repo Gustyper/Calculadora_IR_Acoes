@@ -1,9 +1,20 @@
-import { useState, useMemo } from 'react';
-import { type Operacao} from '../core/types';
+import { useState, useEffect, useMemo } from 'react';
+import { type Operacao } from '../core/types';
 import { TaxEngine } from '../core/calculators/TaxEngine';
 
+const STORAGE_KEY = 'taxcalc_operacoes';
+
 export function useCalculadoraIR() {
-  const [operacoes, setOperacoes] = useState<Operacao[]>([]);
+  // Inicializa o estado buscando do Local Storage ou com array vazio
+  const [operacoes, setOperacoes] = useState<Operacao[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Persiste no Local Storage sempre que a lista de operações mudar
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(operacoes));
+  }, [operacoes]);
 
   const { resultados, custodia, prejuizos } = useMemo(() => {
     const engine = new TaxEngine();
@@ -22,5 +33,12 @@ export function useCalculadoraIR() {
     setOperacoes((prev) => [...prev, op]);
   };
 
-  return { operacoes, resultados, custodia, prejuizos, adicionarOperacao };
+  // Função útil para o usuário resetar os dados
+  const limparDados = () => {
+    if (confirm("Deseja apagar todo o histórico de operações?")) {
+      setOperacoes([]);
+    }
+  };
+
+  return { operacoes, resultados, custodia, prejuizos, adicionarOperacao, limparDados };
 }

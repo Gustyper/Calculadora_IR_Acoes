@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useCalculadoraIR } from './hooks/useCalculadoraIR';
 import { type TipoOperacao, type CategoriaAtivo } from './core/types';
-import { PlusCircle, Calculator, History, TrendingUp, AlertCircle } from 'lucide-react';
+import { PlusCircle, Calculator, History, TrendingUp, AlertCircle, Trash2 } from 'lucide-react';
 import { TICKERS_DATA } from './utils/tickers';
 import { calcularVencimentoDARF } from './utils/dateUtils';
   
 export default function App() {
   const [activeTab, setActiveTab] = useState<'calc' | 'regras'>('calc');
 
-  const { operacoes, resultados, custodia, prejuizos, adicionarOperacao } = useCalculadoraIR();
+  const { operacoes, resultados, custodia, prejuizos, adicionarOperacao, limparDados } = useCalculadoraIR();
   
   const [formData, setFormData] = useState({
     data: '', ticker: '', tipo: 'COMPRA' as TipoOperacao,
@@ -264,6 +264,12 @@ export default function App() {
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <h2 className="font-bold flex items-center gap-2"><History size={18} /> Histórico</h2>
               <span className="text-xs font-medium px-2 py-1 bg-slate-200 rounded-full">{operacoes.length} itens</span>
+              <button 
+                onClick={limparDados}
+                className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-colors"
+              >
+                <Trash2 size={14} /> Limpar Tudo
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
