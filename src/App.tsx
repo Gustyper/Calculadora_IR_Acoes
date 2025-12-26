@@ -3,6 +3,7 @@ import { useCalculadoraIR } from './hooks/useCalculadoraIR';
 import { type TipoOperacao, type CategoriaAtivo } from './core/types';
 import { PlusCircle, Calculator, History, TrendingUp, AlertCircle } from 'lucide-react';
 import { TICKERS_DATA } from './utils/tickers';
+import { calcularVencimentoDARF } from './utils/dateUtils';
   
 export default function App() {
   const [activeTab, setActiveTab] = useState<'calc' | 'regras'>('calc');
@@ -90,7 +91,7 @@ export default function App() {
             <p className="text-sm text-slate-600">Prejuízos de meses anteriores podem ser usados para abater lucros futuros. <b>Atenção:</b> Prejuízo de FII só abate lucro de FII. Ações, BDRs e ETFs podem se compensar entre si.</p>
           </div>
         </div>
-      )}
+      )}  
 
       <main className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
         
@@ -202,8 +203,11 @@ export default function App() {
                     </div>
                     <ul className="text-xs text-amber-700 space-y-1 ml-6 list-disc">
                       <li>Código da Receita: <b>6015</b></li>
-                      <li>Vencimento: Último dia útil de <b>{/* Lógica para o mês seguinte */}</b></li>
-                      <li>Emitir via: <b>Sicalc Web</b></li>
+                      <li>
+                        Vencimento: <b>{calcularVencimentoDARF(res.mes)}</b> 
+                        <span className="text-[10px] ml-1 opacity-70">(Último dia útil do mês seguinte)</span>
+                      </li>
+                      <li>Emitir via: <b>Sicalc Web (Portal e-CAC)</b></li>
                     </ul>
                   </div>
                 ) : (
