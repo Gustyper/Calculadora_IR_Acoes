@@ -13,6 +13,18 @@ export default function App() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.tipo === 'VENDA') {
+      // Busca o ativo na custódia calculada
+      const ativo = custodia.find(([t]) => t === formData.ticker);
+      const qtdDisponivel = ativo ? ativo[1].quantidade : 0;
+
+      if (formData.quantidade > qtdDisponivel) {
+        alert(`Erro: Você possui apenas ${qtdDisponivel} de ${formData.ticker} em estoque.`);
+        return;
+      }
+    }
+
     adicionarOperacao({ ...formData, id: Math.random().toString(36).substring(2, 9) });
     setFormData({ ...formData, ticker: '', quantidade: 0, precoUnitario: 0, taxas: 0 });
   };
