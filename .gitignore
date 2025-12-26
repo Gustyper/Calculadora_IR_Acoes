@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# python
+resgate.py
+InstrumentsConsolidatedFile_20251226_1.csv
