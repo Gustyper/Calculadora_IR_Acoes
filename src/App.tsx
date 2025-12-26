@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useCalculadoraIR } from './hooks/useCalculadoraIR';
 import { type TipoOperacao, type CategoriaAtivo } from './core/types';
-import { PlusCircle, Calculator, History, TrendingUp, AlertCircle, Trash2 } from 'lucide-react';
-import { TICKERS_B3 } from './utils/tickers';
+import { PlusCircle, Calculator, History, TrendingUp, AlertCircle } from 'lucide-react';
+import { TICKERS_DATA } from './utils/tickers';
   
 export default function App() {
-  const { operacoes, resultados, custodia, adicionarOperacao } = useCalculadoraIR();
+  const { operacoes, resultados, custodia, prejuizos, adicionarOperacao } = useCalculadoraIR();
   
   const [formData, setFormData] = useState({
     data: '', ticker: '', tipo: 'COMPRA' as TipoOperacao,
@@ -28,6 +28,18 @@ export default function App() {
 
     adicionarOperacao({ ...formData, id: Math.random().toString(36).substring(2, 9) });
     setFormData({ ...formData, ticker: '', quantidade: 0, precoUnitario: 0, taxas: 0 });
+  };
+
+  const handleTickerChange = (value: string) => {
+    const tickerUpper = value.toUpperCase();
+    const categoriaAuto = TICKERS_DATA[tickerUpper];
+
+    setFormData(prev => ({
+      ...prev,
+      ticker: tickerUpper,
+      // Atualiza automaticamente para ACAO, BDR_ETF ou FII se existir no banco
+      categoria: categoriaAuto ? categoriaAuto : prev.categoria
+    }));
   };
 
   return (
@@ -62,25 +74,31 @@ export default function App() {
                   <label className="text-xs font-semibold text-slate-500 uppercase">Ticker</label>
                   <input 
                     type="text" 
-                    list="tickers-list" // Conecta com o id do datalist
+                    list="tickers-list"
                     placeholder="PETR4" 
                     required 
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    onChange={e => setFormData({...formData, ticker: e.target.value.toUpperCase()})} 
+                    // Mudança aqui: chama handleTickerChange para processar a categoria
+                    onChange={e => handleTickerChange(e.target.value)} 
                     value={formData.ticker} 
                   />
                   <datalist id="tickers-list">
-                    {TICKERS_B3.map(ticker => (
+                    {/* Mudança aqui: extrai as chaves do objeto gerado pelo Python */}
+                    {Object.keys(TICKERS_DATA).map(ticker => (
                       <option key={ticker} value={ticker} />
                     ))}
                   </datalist>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-500 uppercase">Categoria</label>
-                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" value={formData.categoria}
-                    onChange={e => setFormData({...formData, categoria: e.target.value as CategoriaAtivo})}>
+                 <select 
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" 
+                    value={formData.categoria}
+                    onChange={e => setFormData({...formData, categoria: e.target.value as CategoriaAtivo})}
+                  >
                     <option value="ACAO">Ação</option>
                     <option value="BDR_ETF">BDR / ETF</option>
+                    <option value="FII">FII / FIAGRO</option>
                   </select>
                 </div>
               </div>
@@ -146,6 +164,23 @@ export default function App() {
                 </div>
               ))}
               {resultados.length === 0 && <div className="col-span-full p-8 text-center bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500">Aguardando operações para calcular...</div>}
+            </div>
+          </section>
+
+          {/* Seção de Prejuízos Acumulados */}
+          <section className="bg-slate-800 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+            <h3 className="text-xs font-bold text-slate-400 uppercase mb-3 tracking-widest flex items-center gap-2">
+              <AlertCircle size={14} /> Prejuízos para Abater (Próximos Meses)
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase">Ações/BDR/ETF</p>
+                <p className="text-lg font-bold text-red-400">R$ {prejuizos.geral.toLocaleString('pt-BR')}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase">FIIs</p>
+                <p className="text-lg font-bold text-red-400">R$ {prejuizos.fii.toLocaleString('pt-BR')}</p>
+              </div>
             </div>
           </section>
 

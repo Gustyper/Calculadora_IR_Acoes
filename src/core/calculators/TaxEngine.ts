@@ -2,25 +2,28 @@ import { type Operacao, type ResultadoMensal } from '../types';
 
 export class TaxEngine {
   private estoque: Map<string, { quantidade: number; precoMedio: number }> = new Map();
-  private prejuizoAcumulado = 0;
+  // Dois acumuladores de prejuízo separados (regra legal)
+  private prejuizoGeral = 0; // Ações, BDRs e ETFs
+  private prejuizoFii = 0;   // Apenas FIIs
 
   calcular(operacoes: Operacao[]): ResultadoMensal[] {
     const opsOrdenadas = [...operacoes].sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
     
-    // Agora o mapa de resultados separa por categoria
     const resultadosPorMes: Record<string, { 
       lucroAcoes: number; 
       vendasAcoes: number;
       lucroBdrEtf: number;
+      lucroFii: number;
     }> = {};
 
     this.estoque.clear();
-    this.prejuizoAcumulado = 0;
+    this.prejuizoGeral = 0;
+    this.prejuizoFii = 0;
 
     opsOrdenadas.forEach(op => {
       const mesChave = op.data.substring(0, 7);
       if (!resultadosPorMes[mesChave]) {
-        resultadosPorMes[mesChave] = { lucroAcoes: 0, vendasAcoes: 0, lucroBdrEtf: 0 };
+        resultadosPorMes[mesChave] = { lucroAcoes: 0, vendasAcoes: 0, lucroBdrEtf: 0, lucroFii: 0 };
       }
 
       const status = this.estoque.get(op.ticker) || { quantidade: 0, precoMedio: 0 };
@@ -39,6 +42,8 @@ export class TaxEngine {
         if (op.categoria === 'ACAO') {
           resultadosPorMes[mesChave].lucroAcoes += lucro;
           resultadosPorMes[mesChave].vendasAcoes += (op.quantidade * op.precoUnitario);
+        } else if (op.categoria === 'FII') {
+          resultadosPorMes[mesChave].lucroFii += lucro;
         } else {
           resultadosPorMes[mesChave].lucroBdrEtf += lucro;
         }
@@ -50,35 +55,43 @@ export class TaxEngine {
     return Object.entries(resultadosPorMes)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([mes, data]) => {
-        // Regra Ações: Isenção se vendas <= 20k
-        const lucroAcoesTributavel = data.vendasAcoes > 20000 ? Math.max(0, data.lucroAcoes) : 0;
+        // --- 1. CÁLCULO GERAL (15%) ---
+        const lucroAcoesTributavel = data.vendasAcoes > 20000 ? data.lucroAcoes : 0;
+        let baseCalculoGeral = lucroAcoesTributavel + data.lucroBdrEtf;
         
-        // Regra BDR/ETF: Sempre tributável se houver lucro
-        const lucroBdrTributavel = Math.max(0, data.lucroBdrEtf);
+        // Se o resultado real de ações (mesmo isento) for prejuízo, ele compensa o BDR
+        const lucroRealGeralMes = data.lucroAcoes + data.lucroBdrEtf;
 
-        const lucroTotalMes = data.lucroAcoes + data.lucroBdrEtf;
-        
-        // Compensação de prejuízo (simplificada: consolidando as categorias)
-        let baseCalculo = lucroAcoesTributavel + lucroBdrTributavel;
-        
-        // Se o resultado total do mês (incluindo prejuízos de ações isentas) for negativo, acumula
-        if (lucroTotalMes < 0) {
-            this.prejuizoAcumulado += Math.abs(lucroTotalMes);
-            baseCalculo = 0;
+        if (lucroRealGeralMes < 0) {
+          this.prejuizoGeral += Math.abs(lucroRealGeralMes);
+          baseCalculoGeral = 0;
         } else {
-            const compensacao = Math.min(baseCalculo, this.prejuizoAcumulado);
-            baseCalculo -= compensacao;
-            this.prejuizoAcumulado -= compensacao;
+          const compensacao = Math.min(Math.max(0, baseCalculoGeral), this.prejuizoGeral);
+          baseCalculoGeral -= compensacao;
+          this.prejuizoGeral -= compensacao;
         }
 
-        const imposto = baseCalculo * 0.15;
+        // --- 2. CÁLCULO FII (20%) ---
+        let baseCalculoFii = data.lucroFii;
+        if (baseCalculoFii < 0) {
+          this.prejuizoFii += Math.abs(baseCalculoFii);
+          baseCalculoFii = 0;
+        } else {
+          const compensacaoFii = Math.min(baseCalculoFii, this.prejuizoFii);
+          baseCalculoFii -= compensacaoFii;
+          this.prejuizoFii -= compensacaoFii;
+        }
+
+        const impostoGeral = Math.max(0, baseCalculoGeral) * 0.15;
+        const impostoFii = Math.max(0, baseCalculoFii) * 0.20;
+        const impostoTotal = impostoGeral + impostoFii;
 
         return {
           mes,
-          lucroTotal: lucroTotalMes,
-          vendasTotais: data.vendasAcoes, // Vendas para fins de controle de isenção
-          impostoDevido: imposto,
-          darfEmitir: imposto > 0
+          lucroTotal: data.lucroAcoes + data.lucroBdrEtf + data.lucroFii,
+          vendasTotais: data.vendasAcoes,
+          impostoDevido: impostoTotal,
+          darfEmitir: impostoTotal > 0
         };
       });
   }

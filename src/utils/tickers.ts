@@ -1,4 +1,4 @@
-export const TICKERS_DATA: Record<string, 'ACAO' | 'BDR_ETF'> = {
+export const TICKERS_DATA: Record<string, 'ACAO' | 'BDR_ETF' | 'FII'> = {
   "A1AP34": "BDR_ETF",
   "A1CR34": "BDR_ETF",
   "A1DC34": "BDR_ETF",

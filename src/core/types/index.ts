@@ -1,5 +1,5 @@
 export type TipoOperacao = 'COMPRA' | 'VENDA';
-export type CategoriaAtivo = 'ACAO' | 'BDR_ETF';
+export type CategoriaAtivo = 'ACAO' | 'BDR_ETF' | 'FII';
 
 export interface Operacao {
   id: string;
